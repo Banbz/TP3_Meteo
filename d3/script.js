@@ -1,8 +1,8 @@
-const width = 550, height = 550;
+const width = 700, height = 700;
 const path = d3.geoPath();
 const projection = d3.geoConicConformal()
     .center([2.454071, 46.279229])
-    .scale(2600)
+    .scale(3500)
     .translate([width / 2, height / 2]);
     path.projection(projection);
 
@@ -17,5 +17,15 @@ d3.json('d3/departments.json').then(function(geojson) {
         .data(geojson.features)
         .enter()
         .append("path")
-        .attr("d", path);
+        .attr("fill", "black")
+        .attr("d", path);   
+});
+
+d3.json('d3/meteo.json').then(function(geojson) {
+    deps.selectAll("path")
+        .data(geojson.features)
+        .enter()
+        .append("path")
+        .attr("fill", "black")
+        .attr("d", path);   
 });
