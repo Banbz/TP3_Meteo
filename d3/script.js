@@ -21,11 +21,7 @@ d3.json('d3/departments.json').then(function(geojson) {
         .attr("d", path);   
 });
 
-d3.json('d3/meteo.json').then(function(geojson) {
-    deps.selectAll("path")
-        .data(geojson.features)
-        .enter()
-        .append("path")
-        .attr("fill", "black")
-        .attr("d", path);   
+d3.json('d3/meteo.json').then(function(data) {
+    var stations = data[0]["station"];
+    console.log(stations);
 });
