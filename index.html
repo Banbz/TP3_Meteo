@@ -24,6 +24,8 @@
 
 <body id="page-top">
 
+<div id="tooltip_work">
+
   <!-- Page Wrapper -->
   <div id="wrapper">
 
@@ -147,7 +149,7 @@
               <div class="card shadow mb-4">
                 <!-- Card Header - Dropdown -->
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                  <h6 class="m-0 font-weight-bold text-primary">Température</h6>
+                  <h6 class="m-0 font-weight-bold text-center text-primary">Evolution de la température moyenne au mois de février 1999</h6>
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
@@ -155,6 +157,23 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <div class="row justify-content-center">
+
+              <!-- Area Chart -->
+              <div class="col-lg-12">
+                  <div class="card shadow mb-4">
+                      <!-- Card Header - Dropdown -->
+                      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                          <h6 class="m-0 font-weight-bold text-primary">Evolution de la pluviométrie moyenne au mois de février 1999</h6>
+                      </div>
+                      <!-- Card Body -->
+                      <div class="card-body">
+                          <div id="line_precip"></div>
+                      </div>
+                  </div>
+              </div>
           </div>
           </div>
         </div>
@@ -263,15 +282,23 @@
           });
       });
       $(document).ready(function () {
-
+          $('#datepicker').datepicker().on('changeDate', function (ev) {
+              $('#datepicker').change();
+          });
+          $('#datepicker').change(function () {
+              console.log($('#datepicker').val());
+              updateVille();
+          });
       });
   </script>
 
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="js/script.js"></script>
   <script src="js/line_chart.js"></script>
+  <script src="js/precip_chart.js"></script>
 
 
+</div>
 </div>
 </body>
 
