@@ -1,15 +1,25 @@
-var data = [];
-var stations = [];
-var stationsName = [];
 const width = 750, height = 750;
 
 const projection = d3.geoConicConformal()
-    .center([2.454071, 46.279229])
-    .scale(3800)
+    .center([2.5, 46])
+    .scale(3500)
     .translate([width / 2, height / 2]);
 
-function getDay(){
-    var selectPays = document.getElementById('select_ville');
+var data = [];
+var stations = [];
+var nomStations = [];
+
+var request = d3.json("./json/meteo.json")
+    .then(loadJson).catch(console.error);
+
+function loadJson(d){
+    data = d;
+    createStation();
+    createWeatherMap();
+    createVille();
+}
+
+function Day(){
     var day = 1;
     var meteoDate = $('#datepicker').datepicker('getDate');
     if (meteoDate !== null) { // if any date selected in datepicker
@@ -21,7 +31,7 @@ function getDay(){
     return day;
 }
 
-function createMap() {
+function createWeatherMap() {
 
     const path = d3.geoPath();
 
@@ -45,50 +55,19 @@ function createMap() {
     });
 }
 
-var request = d3.json("./json/meteo.json")
-    .then(loadJson).catch(console.error);
-
-function loadJson(d){
-    data = d;
-    createStation();
-    createMap();
-    createVille();
-    stationName();
-}
-
-function stationName()
-{
-    var stations = data[0]["station"];
-    var result = stations.map(function(e){
-        return{
-            name : e.n,
-        }
-    });
-    let dropdown = $('#station_select');
-
-    dropdown.empty();
-
-    dropdown.append('<option selected="true" disabled>Choix Station</option>');
-    dropdown.prop('selectedIndex', 0);
-
-    $.each(result, function (key, entry) {
-        dropdown.append($('<option></option>').attr('value', entry.name).text(entry.name));
-    });
-}
-
 function createStation(){
     for(var i = 0; i < data.length; i++)
     {
         for(var j = 0; j < data[i]['station'].length; j++)
         {
-            if(!stationsName.includes(data[i]['station'][j]['n']))
+            if(!nomStations.includes(data[i]['station'][j]['n']))
             {
-                stationsName.push(data[i]['station'][j]['n']);
+                nomStations.push(data[i]['station'][j]['n']);
                 var nom = data[i]['station'][j]['n'];
                 var latitude = data[i]['station'][j]['lat'];
                 var longitude = data[i]['station'][j]['lng'];
 
-                var detailJour = [];
+                var detailDay = [];
                 for(var l = 0; l < data.length; l++)
                 {
                     for(var m = 0; m < data[l]['station'].length; m++)
@@ -96,8 +75,8 @@ function createStation(){
                         if(data[l]['station'][m]['n'] == nom){
 
                             var temp = data[l]['station'][m]['t'];
-                            var TempMoy = parseFloat(temp/100).toFixed(0);
-                            var PreciMoy = parseFloat(data[l]['station'][m]['p']).toFixed(2);
+                            var TempMoy = parseFloat(temp/100);
+                            var PreciMoy = parseFloat(data[l]['station'][m]['p']);
                             var min = 0;
                             var max = 0;
 
@@ -124,7 +103,7 @@ function createStation(){
                                 max : max,
                                 detailHeure : data[l]['station'][m]['hours']
                             }
-                            detailJour.push(infoMeteo);
+                            detailDay.push(infoMeteo);
                         }
                     }
                 }
@@ -132,40 +111,50 @@ function createStation(){
                     nom: nom,
                     latitude: latitude,
                     longitude : longitude,
-                    detailJour : detailJour
+                    detailDay : detailDay
                 };
 
                 stations.push(infoStation);
+                let dropdown = $('#station_select');
+
+                dropdown.empty();
+
+                dropdown.append('<option selected="true" disabled>Choix Station</option>');
+                dropdown.prop('selectedIndex', 0);
+
+                $.each(stations, function (key, entry) {
+                    dropdown.append($('<option></option>').attr('value', entry.nom).text(entry.nom));
+                });
             }
         }
     }
 }
 
-function updateVille()
+function updateStation()
 {
-    day = getDay();
+    day = Day();
     d3.selectAll("svg image")    .attr("xlink:href", function (d) {
-        if(d.detailJour.length >= day){
-            if(d.detailJour[day - 1]['TempMoy'] <= 1 && d.detailJour[day - 1]['PreciMoy'] >= 0.75 && d.detailJour[day - 1]['TempMoy'] >= -3)
+        if(d.detailDay.length >= day){
+            if(d.detailDay[day - 1]['TempMoy'] <= 1 && d.detailDay[day - 1]['PreciMoy'] >= 0.75 && d.detailDay[day - 1]['TempMoy'] >= -3)
                 return "./img/snow.svg";
-            else if( d.detailJour[day - 1]['TempMoy'] >= 25 && d.detailJour[day - 1]['PreciMoy'] <= 0.15)
+            else if( d.detailDay[day - 1]['TempMoy'] >= 25 && d.detailDay[day - 1]['PreciMoy'] <= 0.15)
                 return "./img/sun.svg";
-            else if(d.detailJour[day - 1]['PreciMoy'] >= 0.50)
+            else if(d.detailDay[day - 1]['PreciMoy'] >= 0.50)
                 return "./img/rain.svg";
-            else if(d.detailJour[day - 1]['PreciMoy'] >= 0.25 )
+            else if(d.detailDay[day - 1]['PreciMoy'] >= 0.25 )
                 return "./img/cloud-sun.svg";
-            else if(d.detailJour[day - 1]['PreciMoy'] > 0.00 && d.detailJour[day - 1]['TempMoy'] <= 15)
+            else if(d.detailDay[day - 1]['PreciMoy'] > 0.00 && d.detailDay[day - 1]['TempMoy'] <= 15)
                 return "./img/cloud.svg";
-            else if(d.detailJour[day - 1]['PreciMoy'] == 0.00)
+            else if(d.detailDay[day - 1]['PreciMoy'] == 0.00)
                 return "./img/sun.svg";
         }
     })
 
     d3.selectAll("#map svg text").text(function(d){
         try {
-            if(d.detailJour.length > day - 1)
+            if(d.detailDay.length > day - 1)
             {
-                return d.detailJour[day - 1]['TempMoy'] + "°C";
+                return d.detailDay[day - 1]['TempMoy'] + "°C";
             }
         }
         catch(error) {
@@ -175,7 +164,7 @@ function updateVille()
 
 function createVille() {
 
-    day = getDay();
+    day = Day();
 
     var div = d3.select("body").append("div")
         .attr("class", "tooltip")
@@ -193,18 +182,18 @@ function createVille() {
 
     var circle = elemEnter.append("image")
         .attr("xlink:href", function (d) {
-            if(d.detailJour.length >= day){
-                if(d.detailJour[day - 1]['TempMoy'] <= 1 && d.detailJour[day - 1]['PreciMoy'] >= 0.75 && d.detailJour[day - 1]['TempMoy'] >= -1)
+            if(d.detailDay.length >= day){
+                if(d.detailDay[day - 1]['TempMoy'] <= 1 && d.detailDay[day - 1]['PreciMoy'] >= 0.75 && d.detailDay[day - 1]['TempMoy'] >= -1)
                     return "./img/snow.svg";
-                else if( d.detailJour[day - 1]['TempMoy'] >= 20 && d.detailJour[day - 1]['PreciMoy'] <= 0.2)
+                else if( d.detailDay[day - 1]['TempMoy'] >= 20 && d.detailDay[day - 1]['PreciMoy'] <= 0.2)
                     return "./img/sun.svg";
-                else if(d.detailJour[day - 1]['PreciMoy'] >= 1)
+                else if(d.detailDay[day - 1]['PreciMoy'] >= 1)
                     return "./img/rain.svg";
-                else if(d.detailJour[day - 1]['PreciMoy'] >= 0.25 )
+                else if(d.detailDay[day - 1]['PreciMoy'] >= 0.25 )
                     return "./img/cloud-sun.svg";
-                else if(d.detailJour[day - 1]['PreciMoy'] > 0.00 && d.detailJour[day - 1]['TempMoy'] <= 15)
+                else if(d.detailDay[day - 1]['PreciMoy'] > 0.00 && d.detailDay[day - 1]['TempMoy'] <= 15)
                     return "./img/cloud.svg";
-                else if(d.detailJour[day - 1]['PreciMoy'] == 0.00)
+                else if(d.detailDay[day - 1]['PreciMoy'] == 0.00)
                     return "./img/sun.svg";
             }
         })
@@ -216,9 +205,9 @@ function createVille() {
                 .duration(200)
                 .style("opacity", .9);
             div.html("Station de " + d.nom+ "<br/>"
-                + " T° mini du jour : " + d.detailJour[day - 1]['min'] + "°C</br>"
-                + "T° maxi du jour : " + d.detailJour[day - 1]['max'] + "°C</br>"
-                + "Précipitation du jour : " + d.detailJour[day - 1]['PreciMoy'] + "mm</br>")
+                + " T° mini du jour : " + d.detailDay[day - 1]['min'] + "°C</br>"
+                + "T° maxi du jour : " + d.detailDay[day - 1]['max'] + "°C</br>"
+                + "Précipitation du jour : " + d.detailDay[day - 1]['PreciMoy'] + "mm</br>")
                 .style("left", (d3.event.pageX - 10) + "px")
                 .style("top", (d3.event.pageY - 10) + "px");
         })

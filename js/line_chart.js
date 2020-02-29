@@ -9,6 +9,10 @@ var data = [];
 
 function loadJson(f) {
     data = f;
+    createTemp();
+}
+
+function createTemp(){
     var result = data.map(function (e) {
         return {
             t: (e.t)/100,
@@ -53,6 +57,14 @@ function loadJson(f) {
     svg.append("g")
         .attr("class", "y axis")
         .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft
+
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x",0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Température en °C");
 
 // 9. Append the path, bind the data, and call the line generator
     svg.append("path")
